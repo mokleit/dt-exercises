@@ -63,9 +63,9 @@ class LaneFilterHistogramKF():
 
         #Init matrices
         self.A = np.identity(2)
-        self.Q = np.array([[0.3,0],[0,0.3]])
+        self.Q = np.array([[0.6,0],[0,0.6]])
         self.H = np.identity(2)
-        self.R = np.array([[0.75,0],[0,0.6]])
+        self.R = np.array([[0.25,0],[0,0.1]])
 
     def predict(self, dt, left_encoder_delta, right_encoder_delta):
         #TODO update self.belief based on right and left encoder data + kinematics
@@ -101,8 +101,8 @@ class LaneFilterHistogramKF():
         # v = omega * 2 * np.pi * self.wheel_radius 
         print("wheel radius", self.wheel_radius)
         print("v", v)
-        self.belief['mean'][0] = self.belief['mean'][0] + dt*v*np.sin(theta_dot)
-        self.belief['mean'][1] = self.belief['mean'][1] + dt*omega
+        self.belief['mean'][0] = self.belief['mean'][0] + dt*v*np.sin(theta_dot) 
+        self.belief['mean'][1] = self.belief['mean'][1] + dt*omega 
         #Update covariance
         self.belief['covariance'] = self.A @ np.array(self.belief['covariance']) @ self.A.T + self.Q
 
