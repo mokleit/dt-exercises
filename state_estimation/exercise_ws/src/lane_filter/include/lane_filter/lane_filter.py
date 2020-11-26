@@ -65,42 +65,28 @@ class LaneFilterHistogramKF():
         self.A = np.identity(2)
         self.Q = np.array([[0.6,0],[0,0.6]])
         self.H = np.identity(2)
-        self.R = np.array([[0.25,0],[0,0.1]])
+        self.R = np.array([[0.15,0],[0,0.05]])
 
     def predict(self, dt, left_encoder_delta, right_encoder_delta):
         #TODO update self.belief based on right and left encoder data + kinematics
-        print("IN PREDICT")
-        print("SELF.BELIEF", self.belief)
-        # print("LEFT_ENCODER_DELTA", left_encoder_delta)
-        # print("RIGHT_ENCODER_DELTA", right_encoder_delta)
         if not self.initialized:
             return
         #Compute right and left velocities
-        d_left = (2 * np.pi * self.wheel_radius * left_encoder_delta) / 135
+        d_left = (2 * np.pi * self.wheel_radius * left_encoder_delta) / self.encoder_resolution
         v_left = d_left / dt
-        # omega_left = v_left / self.wheel_radius
         
-        d_right = (2 * np.pi * self.wheel_radius * right_encoder_delta) / 135
+        d_right = (2 * np.pi * self.wheel_radius * right_encoder_delta) / self.encoder_resolution
         v_right = d_right / dt
-        # omega_right = v_right / self.wheel_radius
 
         #Compute angular displacement
-        print("baseline", self.baseline)
         theta_delta = (d_right - d_left) / self.baseline
         theta_dot = (v_right - v_left) / self.baseline
-        print("theta_delta", theta_delta)
-        print("theta_dot", theta_dot)
         
         #Compute robot velocities 
         v = 0.5 * (v_right + v_left)
-        # omega = 0.5 * (omega_right + omega_left)
         omega = theta_delta / dt
 
-
-        # omega = 0.5 * (omega_left + omega_right)
-        # v = omega * 2 * np.pi * self.wheel_radius 
-        print("wheel radius", self.wheel_radius)
-        print("v", v)
+        #Update belief
         self.belief['mean'][0] = self.belief['mean'][0] + dt*v*np.sin(theta_dot) 
         self.belief['mean'][1] = self.belief['mean'][1] + dt*omega 
         #Update covariance
@@ -111,24 +97,15 @@ class LaneFilterHistogramKF():
         # prepare the segments for each belief array
         segmentsArray = self.prepareSegments(segments)
         # generate all belief arrays
-
         measurement_likelihood = self.generate_measurement_likelihood(
             segmentsArray)
         
-        # print("MEASUREMENT LIKELIHOOD SHAPE", measurement_likelihood.shape)
-        # print("MEAN SHAPE", len(self.belief['mean']))
-        # print("COVARIANCE SHAPE", len(self.belief['covariance']))
-
         # TODO: Parameterize the measurement likelihood as a Gaussian
+        # TODO: Apply the update equations for the Kalman Filter to self.belief
         if(measurement_likelihood is not None):
-            # z = measurement_likelihood.mean()
             d_new = self.d_min + np.unravel_index(np.argmax(measurement_likelihood, axis=None), measurement_likelihood.shape)[0] * self.delta_d + self.delta_d*0.5 + np.random.normal(loc=0.0, scale=self.R[0,0])
             phi_new = self.phi_min + np.unravel_index(np.argmax(measurement_likelihood, axis=None), measurement_likelihood.shape)[1] * self.delta_phi + self.delta_phi*0.5 + np.random.normal(loc=0.0, scale=self.R[1,1])
             z = np.array([d_new, phi_new])
-            print("D_PREDICT - D_LIKELIHOOD", self.belief['mean'][0] - d_new)
-            print("PHI_PREDICT - PHI_LIKELIHOOD", self.belief['mean'][1] - phi_new)
-            
-        # TODO: Apply the update equations for the Kalman Filter to self.belief
             mu_residual = z - self.H @ np.array(self.belief['mean'])
         else:
             return
@@ -137,7 +114,6 @@ class LaneFilterHistogramKF():
         K = np.array(self.belief['covariance']) @ self.H.T @ np.linalg.inv(covariance_residual)
         self.belief['mean'] = np.array(self.belief['mean']) + K @ mu_residual
         self.belief['covariance'] = np.array(self.belief['covariance']) - K @ self.H @ np.array(self.belief['covariance'])
-
 
 
     def getEstimate(self):
