@@ -48,18 +48,13 @@ class LaneFilterHistogramKF():
 
         self.mean_0 = [self.mean_d_0, self.mean_phi_0]
         self.cov_0 = [[self.sigma_d_0, 0], [0, self.sigma_phi_0]]
-        
-        print("MEAN_D_0", self.mean_d_0)
-        print("MEAN_PHI_0", self.mean_phi_0)
-        print("SIGMA_D_0", self.sigma_d_0)
-        print("SIGMA_PHI_0", self.sigma_phi_0)
-
         self.belief = {'mean': self.mean_0, 'covariance': self.cov_0}
 
         self.encoder_resolution = 0
         self.wheel_radius = 0.0
         self.baseline = 0.0
         self.initialized = False
+        self.reset()
 
         #Init matrices
         self.A = np.identity(2)
@@ -67,12 +62,11 @@ class LaneFilterHistogramKF():
         self.Q = np.array([[0.6,0],[0,0.6]])
         self.H = np.identity(2)
         self.R = np.array([[0.15,0],[0,0.05]])
-        
-        # self.A = np.identity(2)
-        # self.B = np.identity(2)
-        # self.Q = np.array([[0.3,0],[0,0.3]])
-        # self.H = np.identity(2)
-        # self.R = np.array([[0.75,0],[0,0.6]])       
+              
+    def reset(self):
+        self.mean_0 = [self.mean_d_0, self.mean_phi_0]
+        self.cov_0 = [[self.sigma_d_0, 0], [0, self.sigma_phi_0]]
+        self.belief = {'mean': self.mean_0, 'covariance': self.cov_0}
 
     def predict(self, dt, left_encoder_delta, right_encoder_delta):
         #TODO update self.belief based on right and left encoder data + kinematics
@@ -115,10 +109,12 @@ class LaneFilterHistogramKF():
         # prepare the segments for each belief array
         segmentsArray = self.prepareSegments(segments)
         # generate all belief arrays
+
         measurement_likelihood = self.generate_measurement_likelihood(
             segmentsArray)
         
         # TODO: Parameterize the measurement likelihood as a Gaussian
+
         # TODO: Apply the update equations for the Kalman Filter to self.belief
         if(measurement_likelihood is not None):
             d_new = self.d_min + np.unravel_index(np.argmax(measurement_likelihood, axis=None), measurement_likelihood.shape)[0] * self.delta_d + self.delta_d*0.5 + np.random.normal(loc=0.0, scale=self.R[0,0])

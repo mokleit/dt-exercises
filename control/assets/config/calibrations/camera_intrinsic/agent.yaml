@@ -1,0 +1,55 @@
+camera_matrix:
+  cols: 3
+  data:
+  - 1625.0761934584214
+  - 0.0
+  - 132.11791927004805
+  - 0.0
+  - 1938.6019866879176
+  - 296.73113881221707
+  - 0.0
+  - 0.0
+  - 1.0
+  rows: 3
+camera_name: zizou10/camera_node
+distortion_coefficients:
+  cols: 5
+  data:
+  - -7.901136596958947
+  - 24.51879037839527
+  - -0.3199396636281532
+  - 0.4640517936499247
+  - 0.0
+  rows: 1
+distortion_model: plumb_bob
+image_height: 480
+image_width: 640
+projection_matrix:
+  cols: 4
+  data:
+  - 1451.9447021484375
+  - 0.0
+  - 150.58252029517826
+  - 0.0
+  - 0.0
+  - 1853.9140625
+  - 275.7881562471157
+  - 0.0
+  - 0.0
+  - 0.0
+  - 1.0
+  - 0.0
+  rows: 3
+rectification_matrix:
+  cols: 3
+  data:
+  - 1.0
+  - 0.0
+  - 0.0
+  - 0.0
+  - 1.0
+  - 0.0
+  - 0.0
+  - 0.0
+  - 1.0
+  rows: 3
