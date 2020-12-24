@@ -63,9 +63,16 @@ class LaneFilterHistogramKF():
 
         #Init matrices
         self.A = np.identity(2)
+        self.B = np.identity(2)
         self.Q = np.array([[0.6,0],[0,0.6]])
         self.H = np.identity(2)
         self.R = np.array([[0.15,0],[0,0.05]])
+        
+        # self.A = np.identity(2)
+        # self.B = np.identity(2)
+        # self.Q = np.array([[0.3,0],[0,0.3]])
+        # self.H = np.identity(2)
+        # self.R = np.array([[0.75,0],[0,0.6]])       
 
     def predict(self, dt, left_encoder_delta, right_encoder_delta):
         #TODO update self.belief based on right and left encoder data + kinematics
@@ -91,7 +98,18 @@ class LaneFilterHistogramKF():
         self.belief['mean'][1] = self.belief['mean'][1] + dt*omega 
         #Update covariance
         self.belief['covariance'] = self.A @ np.array(self.belief['covariance']) @ self.A.T + self.Q
-
+        
+        # d_left = (2 * np.pi * self.wheel_radius * left_encoder_delta) / self.encoder_resolution
+        # v_left = d_left / dt
+        # d_right = (2 * np.pi * self.wheel_radius * right_encoder_delta) / self.encoder_resolution
+        # v_right = d_right / dt
+        # d = 0.5 * (d_right + d_left)
+        # v = 0.5 * (v_right + v_left)
+        # theta_delta = (d_right - d_left) / self.baseline   
+        # d_t = d*v*np.sin(self.belief['mean'][1] + 0.5*theta_delta)
+        # u_t = np.array([d_t, theta_delta])
+        # self.belief['mean'] = self.A @ self.belief['mean'] + self.B @ u_t
+        # self.belief['covariance'] = self.A @ np.array(self.belief['covariance']) @ self.A.T + self.Q
 
     def update(self, segments):
         # prepare the segments for each belief array

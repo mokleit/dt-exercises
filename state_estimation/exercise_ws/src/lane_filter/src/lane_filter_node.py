@@ -55,6 +55,7 @@ class LaneFilterNode(DTROS):
         self.last_update_stamp = self.t_last_update
 
         self.filter.wheel_radius = rospy.get_param(f"/{veh}/kinematics_node/radius")
+        self.filter.baseline = rospy.get_param(f"/{veh}/kinematics_node/baseline")
 
         # Subscribers
         self.sub_segment_list = rospy.Subscriber("~segment_list",
@@ -101,12 +102,14 @@ class LaneFilterNode(DTROS):
     def cbProcessLeftEncoder(self, left_encoder_msg):
         if not self.filter.initialized:
             self.filter.encoder_resolution = left_encoder_msg.resolution
+            # print("left_resolution", left_encoder_msg.resolution)
             self.filter.initialized = True
         self.left_encoder_ticks_delta = left_encoder_msg.data - self.left_encoder_ticks
 
     def cbProcessRightEncoder(self, right_encoder_msg):
         if not self.filter.initialized:
             self.filter.encoder_resolution = right_encoder_msg.resolution
+            # print("left_resolution", right_encoder_msg.resolution)
             self.filter.initialized = True
         self.right_encoder_ticks_delta = right_encoder_msg.data - self.right_encoder_ticks
 
@@ -118,7 +121,7 @@ class LaneFilterNode(DTROS):
         # first let's check if we moved at all, if not abort
         if self.right_encoder_ticks_delta == 0 and self.left_encoder_ticks_delta == 0:
             return
-
+        
         self.filter.predict(dt, self.left_encoder_ticks_delta, self.right_encoder_ticks_delta)
         self.left_encoder_ticks += self.left_encoder_ticks_delta
         self.right_encoder_ticks += self.right_encoder_ticks_delta

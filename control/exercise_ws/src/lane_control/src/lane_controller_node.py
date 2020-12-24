@@ -111,9 +111,6 @@ class LaneControllerNode(DTROS):
             self.omega = (2.0 * self.v * self.sin_alpha) / self.look_ahead_distance
             self.v = 0.5
         else:
-            print("USE LANE POSE 2")
-            print("PHI2=", self.phi)
-            print("DISTANCE FROM MIDDLE OF LANE2", self.d)
             self.omega = -self.phi
             self.v = 0.1
 
@@ -134,13 +131,8 @@ class LaneControllerNode(DTROS):
         Args:
             car_cmd_msg (:obj:`Twist2DStamped`): Message containing the requested control action.
         """
-        print("OMEGA=", self.omega)
-        print("V=", self.v)
-        print("----------------------------------------------------------------------------------------------")
         car_cmd_msg.omega = self.omega
-        car_cmd_msg.v = self.v
-        # car_cmd_msg.omega = 0.5
-        # car_cmd_msg.v = 0.1     
+        car_cmd_msg.v = self.v    
         self.pub_car_cmd.publish(car_cmd_msg)
 
 
