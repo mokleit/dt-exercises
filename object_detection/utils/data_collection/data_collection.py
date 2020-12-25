@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 
 import numpy as np
+from cv2 import cv2
+from datetime import datetime
 
 from agent import PurePursuitPolicy
 from utils import launch_env, seed
@@ -15,11 +17,28 @@ def save_npz(img, boxes, classes):
         np.savez(f"{DATASET_DIR}/{npz_index}.npz", *(img, boxes, classes))
         npz_index += 1
 
+def remove_snow(img):
+    #Define image names
+    id = str(datetime.now())
+    filtered_image_name = 'snowless_images/filtered_image' + id + '.jpg'   
+    raw_image_name = 'snowless_images/raw_image' + id + '.jpg'
+    
+    #Remove snow
+    kernel = np.ones((4,3),np.uint8)
+    filtered = cv2.morphologyEx(img, cv2.MORPH_OPEN, kernel)
+
+    #Save raw and filtered images
+    cv2.imwrite(raw_image_name, img)
+    cv2.imwrite(filtered_image_name, filtered)
+
+    return filtered
+
 def clean_segmented_image(seg_img):
     # TODO
     # Tip: use either of the two display functions found in util.py to ensure that your cleaning produces clean masks
     # (ie masks akin to the ones from PennFudanPed) before extracting the bounding boxes
-    pass
+    print('In clean_segmented_image')
+    snowless_img = remove_snow(seg_img)
     # return boxes, classes
 
 seed(123)
@@ -47,6 +66,8 @@ while True:
 
         # TODO boxes, classes = clean_segmented_image(segmented_obs)
         # TODO save_npz(obs, boxes, classes)
+        if nb_of_steps % 50 == 0:
+            clean_segmented_image(segmented_obs)
 
         nb_of_steps += 1
 
