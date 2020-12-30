@@ -9,11 +9,12 @@ from torchvision import transforms
 PATH = '/home/mokleit/dt-exercises/object_detection/sim/npz'
 
 class Dataset(object):
-    def __init__(self, root=PATH):
+    def __init__(self, root, transforms):
         self.root = root
+        self.transforms = transforms
         # load all image files, sorting them to
         # ensure that they are aligned
-        npz_files = os.listdir(root)
+        npz_files = os.listdir(self.root)
         self.images = []
         self.bboxes = []
         self.classes = []
@@ -27,11 +28,10 @@ class Dataset(object):
     def __getitem__(self, idx):
         # load image
         img = self.images[idx]
-        img = transforms.ToTensor()(img)
         # load boxes
         boxes = torch.as_tensor(self.bboxes[idx], dtype=torch.float32)
         # load labels
-        labels = torch.as_tensor(self.classes[idx], dtype=torch.uint8)
+        labels = torch.as_tensor(self.classes[idx], dtype=torch.int64)
         # define image id
         image_id = torch.tensor([idx])
         # compute area
@@ -46,6 +46,9 @@ class Dataset(object):
         target["image_id"] = image_id
         target["area"] = area
         target["iscrowd"] = iscrowd
+
+        if self.transforms is not None:
+            img, target = self.transforms(img, target)
 
         return img, target
 
