@@ -54,7 +54,8 @@ def display_seg_mask(seg_img, masked):
     )
 
     cv2.imshow("image", all)
-    cv2.waitKey(0)
+    cv2.waitKey(10000)
+
 
 def display_img_seg_mask(real_img, seg_img, masked):
     masked = _mod_mask(masked)

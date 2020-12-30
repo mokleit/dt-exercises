@@ -10,6 +10,7 @@ from utils import launch_env, seed
 from utils import launch_env, seed, makedirs, display_seg_mask, display_img_seg_mask
 
 DATASET_DIR="../../dataset"
+sim_path = '/home/mokleit/dt-exercises/object_detection/sim/'
 
 ext = '.png'
 
@@ -25,32 +26,32 @@ kernels = {
     'background': {'kernel': (15,15), 'lower': 100},
     'bus': {'kernel': (7,7), 'lower': 120},
     'cone': {'kernel': (5,5), 'lower': 115},
-    'duckie': {'kernel': (5,5), 'lower': 115},
+    'duckie': {'kernel': (3,3), 'lower': 115},
     'truck': {'kernel': (7,7), 'lower':105}
 }
 
 npz_index = 0
-mask_index = 0
 def save_npz(img, boxes, classes):
     global npz_index
-    filename = str(npz_index) + '.npz'
+    filename = sim_path + 'npz/' + str(npz_index) + '.npz'
     np.savez(filename, *(img, boxes, classes))
+    print('Saved ', npz_index)
     npz_index += 1
 
-def remove_snow(img, save, stamp):    
+def remove_snow(img, save):    
     #Remove snow
-    kernel = np.ones((6,6),np.uint8)
-    filtered = cv2.morphologyEx(img, cv2.MORPH_OPEN, kernel)
+    # kernel = np.ones((6,6),np.uint8)
+    # filtered = cv2.morphologyEx(img, cv2.MORPH_OPEN, kernel)
 
     #Save raw and filtered images
     if save:
         #Define image names
-        filtered_image_name = 'sim/snowless/filtered_image_' + str(mask_index) + ext  
-        raw_image_name = 'sim/snowless/raw_image_' + str(mask_index) + ext
+        # filtered_image_name = sim_path + 'raw/filtered_image_' + str(mask_index) + ext  
+        raw_image_name = sim_path + 'raw/raw_image_' + str(npz_index) + ext
         cv2.imwrite(raw_image_name, img)
-        cv2.imwrite(filtered_image_name, filtered)
+        # cv2.imwrite(filtered_image_name, filtered)
     
-    return filtered
+    return img
 
 def compute_bounding_box_coordinates(image, name):
     bboxes = []
@@ -68,7 +69,7 @@ def compute_bounding_box_coordinates(image, name):
         box_coordinates = [x, y, x + w, y + h]
         bboxes.append(box_coordinates)
     
-    cv2.imwrite('sim/masked/'+name+ str(mask_index)+'.png', filtered)
+    cv2.imwrite(sim_path + 'mask/'+name+ str(npz_index)+'.png', filtered)
 
     return bboxes  
 
@@ -84,9 +85,7 @@ def clean_segmented_image(seg_img):
     # (ie masks akin to the ones from PennFudanPed) before extracting the bounding boxes
     bboxes = []
     classes = []
-    now = datetime.now()
-    stamp = now.strftime('%H:%M:%S')
-    snowless_img = remove_snow(seg_img, True, stamp)
+    snowless_img = remove_snow(seg_img, True)
     
     #Compute mask and bounding boxes for each class
     background_mask = mask_object(snowless_img, 'background')
@@ -147,10 +146,9 @@ while True:
         # TODO boxes, classes = clean_segmented_image(segmented_obs)
         # TODO save_npz(obs, boxes, classes)
         resized_img = cv2.resize(segmented_obs, (224,224))
-        boxes, classes = clean_segmented_image(segmented_obs)
+        boxes, classes = clean_segmented_image(resized_img)
         save_npz(resized_img, boxes, classes)
 
-        mask_index += 1
         nb_of_steps += 1
 
         if done or nb_of_steps > MAX_STEPS:
