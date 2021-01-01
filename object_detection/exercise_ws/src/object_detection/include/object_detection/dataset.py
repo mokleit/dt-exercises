@@ -6,7 +6,8 @@ from torch.utils import data
 from torchvision import transforms
 
 
-PATH = '/home/mokleit/dt-exercises/object_detection/sim/npz'
+# PATH = '/home/mokleit/dt-exercises/object_detection/sim/npz'
+PATH = '/content/drive/My Drive/Fall2020/IFT6757/Exercise3/dt-exercises/object_detection/sim/npz'
 
 class Dataset(object):
     def __init__(self, root, transforms):
@@ -18,7 +19,9 @@ class Dataset(object):
         self.images = []
         self.bboxes = []
         self.classes = []
+        print("START")
         for i in range(len(npz_files)):
+            print('NPZ', i)
             npz_file = np.load(PATH + '/' + str(i) + '.npz')
             image = Image.fromarray(npz_file['arr_0'].astype('uint8')).convert('RGB')
             self.images.append(image)
@@ -28,6 +31,7 @@ class Dataset(object):
     def __getitem__(self, idx):
         # load image
         img = self.images[idx]
+        # img = transforms.ToTensor()(img) 
         # load boxes
         boxes = torch.as_tensor(self.bboxes[idx], dtype=torch.float32)
         # load labels
